@@ -1,0 +1,4 @@
+apiVersion: v2
+name: job-app
+version: 0.1.0
+description: Helm chart per job-app (frontend + backend + database)

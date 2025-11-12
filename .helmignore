@@ -1,0 +1,48 @@
+# Escludi le dipendenze e build del frontend
+node_modules/
+*/node_modules/
+.cache/
+*/.cache/
+dist/
+*/dist/
+build/
+*/build/
+coverage/
+*/coverage/
+parcel-cache/
+*/parcel-cache/
+tmp/
+*/tmp/
+src/
+*/src/
+
+# File temporanei e di editor
+*.log
+*.tmp
+*.swp
+*.bak
+*.lock
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Archivi e pacchetti
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.pack
+
+# File Docker
+dockerbuild.sh
+Dockerfile
+
+# File git
+.git/
+.gitignore
+
+# Librerie Typescript pesanti
+typescript/
+*/typescript/
+

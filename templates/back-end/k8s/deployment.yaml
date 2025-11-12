@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-be-deployment
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.backend.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.backend.app }}
+    spec:
+      containers:
+        - name: {{ .Values.backend.app }}
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: Never  # Importante per usare l’immagine locale
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+          envFrom:
+            - configMapRef:
+                name: job-be-configmap
+

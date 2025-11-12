@@ -1,0 +1,24 @@
+backend:
+  image: job-be:1.5
+  replicas: 2
+  port: 5000
+  app: job-be
+
+frontend:
+  image: job-fe:1.0
+  replicas: 1
+  port: 80
+  ingress:
+    host: jobexample.adamantic.net
+  app: job-fe
+
+database:
+  image: postgres:14
+  replicas: 2
+  storage: 8Gi
+  username: ps_user
+  password: SecurePassword
+  dbname: ps_db
+  port: "5432"
+  app: job-db
+

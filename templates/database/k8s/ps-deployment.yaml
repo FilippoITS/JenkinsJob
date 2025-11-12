@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-db-deployment
+spec:
+  replicas: {{ .Values.database.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.database.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.database.app }}
+    spec:
+      containers:
+        - name: {{ .Values.database.app }}
+          image: {{ .Values.database.image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.database.port }}
+          envFrom:
+            - configMapRef:
+                name: job-db-configmap
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: job-db-data
+      volumes:
+        - name: job-db-data
+          persistentVolumeClaim:
+            claimName: job-db-pvc

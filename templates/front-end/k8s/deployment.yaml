@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-fe-deployment
+spec:
+  replicas: {{ .Values.frontend.replicas }} 
+  selector:
+    matchLabels:
+      app: {{ .Values.frontend.app }} 
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.frontend.app }} 
+    spec:
+      containers:
+        - name: {{ .Values.frontend.app }} 
+          image: {{ .Values.frontend.image }}
+          imagePullPolicy: Never  # Importante per usare l’immagine locale
+          ports:
+            - containerPort: {{ .Values.frontend.port }}
+
+     
+

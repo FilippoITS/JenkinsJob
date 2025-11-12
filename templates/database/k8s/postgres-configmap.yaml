@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: job-db-configmap
+  labels:
+    app: {{ .Values.database.app }}
+data:
+  POSTGRES_DB: {{ .Values.database.dbname }}
+  POSTGRES_USER: {{ .Values.database.username }}
+  POSTGRES_PASSWORD: {{ .Values.database.password }}

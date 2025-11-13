@@ -9,6 +9,14 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/FilippoITS/JenkinsJob', credentialsId: 'git-credentials'
             }
         }
+        stage('List Files') {
+    		steps {
+        		script {
+            sh 'ls -R'  // Elenca ricorsivamente tutte le cartelle e i file
+        		}
+    		}
+	}
+
 
         stage('Build Backend Docker') {
             steps {

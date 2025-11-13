@@ -8,5 +8,5 @@ data:
   POSTGRES_USER: {{ .Values.database.username }}
   POSTGRES_PASSWORD: {{ .Values.database.password }}
   POSTGRES_DB: {{ .Values.database.dbname }}
-  POSTGRES_HOST: 'global-postgres-postgresql'
+  POSTGRES_HOST: "job-db-service"
   POSTGRES_PORT: "{{ .Values.database.port }}"

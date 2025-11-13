@@ -13,7 +13,7 @@ pipeline {
         stage('Build Backend Docker') {
             steps {
                 script {
-                    docker.build("adamanticfilippo/backend:${env.BUILD_NUMBER}", "-f templates/back-end/Dockerfile .")
+                    docker.build("adamanticfilippo/backend:${env.BUILD_NUMBER}", "-f templates/back-end/src/job/Dockerfile .")
                 }
             }
         }
@@ -21,7 +21,7 @@ pipeline {
         stage('Build Frontend Docker') {
             steps {
                 script {
-                    docker.build("adamanticfilippo/frontend:${env.BUILD_NUMBER}", "-f templates/front-end/Dockerfile .")
+                    docker.build("adamanticfilippo/frontend:${env.BUILD_NUMBER}", "-f templates/front-end/src/job-app/Dockerfile .")
                 }
             }
         }

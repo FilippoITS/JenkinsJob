@@ -47,7 +47,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CRED) {
                         docker.image("adamanticfilippo/backend:${env.BUILD_NUMBER}").push()
-                        docker.image("adamanticfilippofrontend:${env.BUILD_NUMBER}").push()
+                        docker.image("adamanticfilippo/frontend:${env.BUILD_NUMBER}").push()
                         docker.image("adamanticfilippo/postgres:${env.BUILD_NUMBER}").push()
                     }
                 }

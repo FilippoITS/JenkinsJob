@@ -1,67 +1,78 @@
 pipeline {
     agent any
-
     environment {
-        REGISTRY = "adamanticfilippo"
-        BUILD_NUMBER = "${env.BUILD_NUMBER}"
-        KUBE_NAMESPACE = "default"
+        DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
-
     stages {
-        stage('Build Docker images') {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/FilippoITS/JenkinsJob', credentialsId: 'git-credentials'
+            }
+        }
+
+        stage('Build Backend Docker') {
             steps {
                 script {
-                    docker.build("${REGISTRY}/backend:${BUILD_NUMBER}", "./backend")
-                    docker.build("${REGISTRY}/frontend:${BUILD_NUMBER}", "./frontend")
-                    docker.build("${REGISTRY}/postgres:${BUILD_NUMBER}", "./postgres")
+                    docker.build("adamanticfilippo/backend:${env.BUILD_NUMBER}", "-f templates/back-end/src/job/Dockerfile .")
                 }
             }
         }
 
-        stage('Push Docker images') {
+        stage('Build Frontend Docker') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'docker-credentials') {
-                        docker.image("${REGISTRY}/backend:${BUILD_NUMBER}").push()
-                        docker.image("${REGISTRY}/frontend:${BUILD_NUMBER}").push()
-                        docker.image("${REGISTRY}/postgres:${BUILD_NUMBER}").push()
+                    docker.build("adamanticfilippo/frontend:${env.BUILD_NUMBER}", "-f templates/front-end/src/job-app/Dockerfile .")
+                }
+            }
+        }
+
+        stage('Build Postgres Docker') {
+            steps {
+                script {
+                    docker.build("adamanticfilippo/postgres:${env.BUILD_NUMBER}", "-f templates/database/Dockerfile .")
+                }
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CRED) {
+                        docker.image("adamanticfilippo/backend:${env.BUILD_NUMBER}").push()
+                        docker.image("adamanticfilippo/frontend:${env.BUILD_NUMBER}").push()
+                        docker.image("adamanticfilippo/postgres:${env.BUILD_NUMBER}").push()
                     }
                 }
             }
         }
 
         stage('Install ingress-nginx (if missing)') {
-            steps {
-                script {
-                    def ingressCheck = sh(script: "kubectl get ns ingress-nginx --ignore-not-found", returnStdout: true).trim()
-                    if (!ingressCheck) {
-                        echo "Ingress controller not found. Installing..."
-                        sh "kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.14.1/deploy/static/provider/cloud/deploy.yaml"
-                        sh "kubectl wait --namespace ingress-nginx --for=condition=ready pod --all --timeout=180s"
-                    } else {
-                        echo "Ingress controller already installed."
+                    steps {
+                        script {
+                            def ingressCheck = sh(script: "kubectl get ns ingress-nginx --ignore-not-found", returnStdout: true).trim()
+                            if (!ingressCheck) {
+                                echo "Ingress controller not found. Installing..."
+                                sh "kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.14.1/deploy/static/provider/cloud/deploy.yaml"
+                                sh "kubectl wait --namespace ingress-nginx --for=condition=ready pod --all --timeout=180s"
+                            } else {
+                                echo "Ingress controller already installed."
+                            }
+                        }
                     }
                 }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                helm upgrade --install job-app . \
+                  --namespace default --create-namespace \
+                  --set backend.image.tag=${BUILD_NUMBER} \
+                  --set frontend.image.tag=${BUILD_NUMBER} \
+                  --set database.image.tag=${BUILD_NUMBER}
+                """
             }
         }
 
-        stage('Deploy application') {
-            steps {
-                script {
-                    // Applica i tuoi manifest o Helm chart
-                    sh "helm upgrade --install job-app ./helm-chart --set backend.tag=${BUILD_NUMBER},frontend.tag=${BUILD_NUMBER},database.tag=${BUILD_NUMBER}"
-                }
-            }
-        }
-
-        stage('Verify deployment') {
-            steps {
-                script {
-                    sh "kubectl get pods"
-                    sh "kubectl get svc"
-                    sh "kubectl get ingress"
-                }
-            }
-        }
     }
 }

@@ -50,7 +50,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh """
-                helm upgrade --install job-app ./Project2ChartJava --namespace csoa
+                        helm upgrade --install job-app . --namespace csoa --create-namespace
                 """
             }
         }

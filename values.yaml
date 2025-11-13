@@ -20,7 +20,7 @@ database:
   image:
     repository: adamanticfilippo/postgres
     tag: ${BUILD_NUMBER}
-  replicas: 2
+  replicas: 1
   storage: 8Gi
   username: ps_user
   password: SecurePassword

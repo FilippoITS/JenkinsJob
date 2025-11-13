@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
+        KUBECONFIG = credentials('kubeconfig-staging')
     }
     stages {
         stage('Checkout') {
@@ -15,6 +16,15 @@ pipeline {
             sh 'ls -R'  // Elenca ricorsivamente tutte le cartelle e i file
         		}
     		}
+    	stage('Test Connection') {
+                    steps {
+                        script {
+                            // Verifica la connessione al cluster Kubernetes
+                            sh 'kubectl version --client'
+                            sh 'kubectl get nodes'  // Prova a ottenere informazioni sui nodi
+                        }
+                    }
+        }
 	}
 
 

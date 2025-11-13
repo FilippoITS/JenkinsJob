@@ -6,7 +6,7 @@ WORKDIR /app
 COPY src/job-app/package*.json ./
 RUN npm install
 
-COPY src/job-app/ ./
+COPY templates/front-end/src/job-app/ ./
 
 RUN npm run build
 

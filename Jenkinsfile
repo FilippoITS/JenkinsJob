@@ -47,20 +47,14 @@ pipeline {
             }
         }
 
-        stage('Install ingress-nginx (if missing)') {
-                    steps {
-                        script {
-                            def ingressCheck = sh(script: "kubectl get ns ingress-nginx --ignore-not-found", returnStdout: true).trim()
-                            if (!ingressCheck) {
-                                echo "Ingress controller not found. Installing..."
-                                sh "kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.14.1/deploy/static/provider/cloud/deploy.yaml"
-                                sh "kubectl wait --namespace ingress-nginx --for=condition=ready pod --all --timeout=180s"
-                            } else {
-                                echo "Ingress controller already installed."
-                            }
-                        }
-                    }
-                }
+        stage('Add hosts entry') {
+            steps {
+                sh '''
+                INGRESS_IP=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+                echo "$INGRESS_IP jobexample.adamantic.net" | sudo tee -a /etc/hosts
+                '''
+            }
+        }
 
         stage('Deploy to Kubernetes') {
             steps {

@@ -15,7 +15,7 @@ spec:
       containers:
         - name: {{ .Values.backend.app }}
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
-          imagePullPolicy: Never  # Importante per usare l’immagine locale
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.backend.port }}
           envFrom:

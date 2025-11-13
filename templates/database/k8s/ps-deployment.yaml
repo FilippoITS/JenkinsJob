@@ -15,7 +15,7 @@ spec:
       containers:
         - name: {{ .Values.database.app }}
           image: "{{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.database.port }}
           envFrom:

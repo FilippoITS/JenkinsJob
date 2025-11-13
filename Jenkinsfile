@@ -50,9 +50,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                     sh """
-                    helm upgrade --install backend ./helm_chart/backend --set image.tag=${BUILD_NUMBER}
-                    helm upgrade --install frontend ./helm_chart/frontend --set image.tag=${BUILD_NUMBER}
-                    helm upgrade --install postgres ./helm_chart/postgres --set image.tag=${BUILD_NUMBER}
+                    helm upgrade --install job-app /home/adamantic/kubernetes/Project2ChartJava
                     """
             }
         }

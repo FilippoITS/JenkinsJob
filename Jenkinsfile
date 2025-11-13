@@ -16,17 +16,17 @@ pipeline {
             sh 'ls -R'  // Elenca ricorsivamente tutte le cartelle e i file
         		}
     		}
-    	stage('Test Connection') {
-                    steps {
-                        script {
-                            // Verifica la connessione al cluster Kubernetes
-                            sh 'kubectl version --client'
-                            sh 'kubectl get nodes'  // Prova a ottenere informazioni sui nodi
-                        }
-                    }
-        }
-	}
+	    }
 
+        stage('Test Connection') {
+            steps {
+                script {
+                    // Verifica la connessione al cluster Kubernetes
+                    sh 'kubectl version --client'
+                    sh 'kubectl get nodes'  // Prova a ottenere informazioni sui nodi
+                }
+            }
+        }
 
         stage('Build Backend Docker') {
             steps {

@@ -17,7 +17,7 @@ FROM nginx:1.15
 COPY --from=build-stage /app/build /usr/share/nginx/html
 
 # Copia il file di configurazione personalizzato di Nginx
-COPY templates/back-end/src/job/config/default.conf ./default.conf
+COPY templates/front-end/src/job-app/default.conf ./default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

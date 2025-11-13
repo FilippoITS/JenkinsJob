@@ -50,7 +50,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                     sh """
-                    helm upgrade --install job-app /home/adamantic/kubernetes/Project2ChartJava
+                    helm upgrade --install job-app /home/kubernetes/Project2ChartJava
                     """
             }
         }

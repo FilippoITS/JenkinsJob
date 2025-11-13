@@ -3,7 +3,7 @@ FROM node:18 AS build-stage
 
 WORKDIR /app
 
-COPY src/job-app/package*.json ./
+COPY templates/front-end/src/job-app/package*.json ./
 RUN npm install
 
 COPY templates/front-end/src/job-app/ ./

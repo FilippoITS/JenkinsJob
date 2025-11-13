@@ -50,7 +50,11 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh """
-                helm upgrade --install job-app . --namespace default --create-namespace
+                helm upgrade --install job-app . \
+                  --namespace default --create-namespace \
+                  --set backend.image.tag=${BUILD_NUMBER} \
+                  --set frontend.image.tag=${BUILD_NUMBER} \
+                  --set database.image.tag=${BUILD_NUMBER}
                 """
             }
         }

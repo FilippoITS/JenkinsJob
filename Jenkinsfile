@@ -2,29 +2,12 @@ pipeline {
     agent any
     environment {
         DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
-        KUBECONFIG = credentials('kubeconfig-staging')
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/FilippoITS/JenkinsJob', credentialsId: 'git-credentials'
-            }
-        }
-        stage('List Files') {
-    		steps {
-        		script {
-            sh 'ls -R'  // Elenca ricorsivamente tutte le cartelle e i file
-        		}
-    		}
-	    }
-
-        stage('Test Connection') {
-            steps {
-                script {
-                    // Verifica la connessione al cluster Kubernetes
-                    sh 'kubectl version --client'
-                    sh 'kubectl get nodes'  // Prova a ottenere informazioni sui nodi
-                }
             }
         }
 
@@ -66,13 +49,11 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig-staging']) {
                     sh """
                     helm upgrade --install backend ./helm_chart/backend --set image.tag=${BUILD_NUMBER}
                     helm upgrade --install frontend ./helm_chart/frontend --set image.tag=${BUILD_NUMBER}
                     helm upgrade --install postgres ./helm_chart/postgres --set image.tag=${BUILD_NUMBER}
                     """
-                }
             }
         }
     }

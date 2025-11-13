@@ -56,7 +56,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig-staging', kubeconfigFile: '/var/lib/jenkins/.kube/config']) {
+                withKubeConfig([credentialsId: 'kubeconfig-staging']) {
                     sh """
                     helm upgrade --install backend ./helm_chart/backend --set image.tag=${BUILD_NUMBER}
                     helm upgrade --install frontend ./helm_chart/frontend --set image.tag=${BUILD_NUMBER}

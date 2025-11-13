@@ -22,4 +22,4 @@ spec:
               service:
                 name: job-be-service
                 port:
-                  number: {{ .Values.backend.port }}
+                  number: {{ .Values.frontend.port }}

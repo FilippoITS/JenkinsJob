@@ -1,11 +1,11 @@
 backend:
-  image: adamanticfilippo/backend:${env.BUILD_NUMBER}
+  image: adamanticfilippo/backend:${BUILD_NUMBER}
   replicas: 2
   port: 5000
   app: job-be
 
 frontend:
-  image: adamanticfilippo/frontend:${env.BUILD_NUMBER}
+  image: adamanticfilippo/frontend:${BUILD_NUMBER}
   replicas: 1
   port: 80
   ingress:
@@ -13,7 +13,7 @@ frontend:
   app: job-fe
 
 database:
-  image: adamanticfilippo/postgres:${env.BUILD_NUMBER}
+  image: adamanticfilippo/postgres:${BUILD_NUMBER}
   replicas: 2
   storage: 8Gi
   username: ps_user

@@ -6,11 +6,11 @@ FROM maven:3.9.9-eclipse-temurin-17 AS builder
 WORKDIR /app
 
 # Copia il file pom.xml e scarica le dipendenze
-COPY pom.xml ./
+COPY templates/back-end/src/job/pom.xml ./
 RUN mvn dependency:go-offline
 
 # Copia il resto del codice e builda il progetto
-COPY src ./src
+COPY templates/back-end/src/job/src ./src
 RUN mvn clean package -DskipTests -X
 
 # ----------------------------

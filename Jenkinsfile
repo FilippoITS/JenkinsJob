@@ -1,15 +1,10 @@
 pipeline {
     agent any
-
-    tools {
-        sonarQubeScanner 'SonarQubeScanner'
-    }
-
+    
     environment {
         DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
-
     stages {
         stage('Checkout') {
             steps {
@@ -74,21 +69,25 @@ pipeline {
             }
         }
 
+        stage('SCM') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('SonarQube Analysis') {
             environment {
-                scannerHome = tool 'SonarScanner'  // Usa il tool configurato nel Jenkinsfile
+                scannerHome = tool 'SonarScanner'
             }
             steps {
-                withSonarQubeEnv('SonarQube') {  // Usa il nome del server SonarQube configurato
-                    withCredentials([string(credentialsId: 'SonarQube-token', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=myproject \
-                            -Dsonar.sources=src \
-                            -Dsonar.host.url=http://localhost:9000 \
-                            -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=myproject \
+                        -Dsonar.sources=src \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=${env.SonarQube-token}
+                    """
                 }
             }
         }
@@ -100,5 +99,6 @@ pipeline {
                 }
             }
         }
+
     }
 }

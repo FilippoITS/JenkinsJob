@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        sonarScanner 'SonarScanner'  // Assicurati che il nome corrisponda a quello configurato in Jenkins
+        sonarScanner 'SonarScanner'  // Usa il nome esatto del tool configurato in Jenkins
     }
 
     environment {
@@ -79,7 +79,7 @@ pipeline {
                 scannerHome = tool 'SonarScanner'  // Usa il tool configurato nel Jenkinsfile
             }
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv('SonarQube') {  // Usa il nome del server SonarQube configurato
                     withCredentials([string(credentialsId: 'SonarQube-token', variable: 'SONAR_TOKEN')]) {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \

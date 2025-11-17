@@ -1,9 +1,10 @@
 pipeline {
     agent any
-    
+
     environment {
         DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
+        SonarQube_token = credentials('SonarQube-token')
     }
     stages {
         stage('Checkout') {
@@ -86,7 +87,7 @@ pipeline {
                         -Dsonar.projectKey=myproject \
                         -Dsonar.sources=src \
                         -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.login=${env.SonarQube-token}
+                        -Dsonar.login=${SonarQube-token}
                     """
                 }
             }

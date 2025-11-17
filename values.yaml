@@ -17,7 +17,9 @@ frontend:
   app: job-fe
 
 database:
-  image: postgres:14
+  image:
+    repository: adamanticfilippo/postgres
+    tag: ${BUILD_NUMBER}
   replicas: 1
   storage: 8Gi
   username: ps_user

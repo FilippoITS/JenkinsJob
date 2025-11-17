@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: {{ .Values.database.app }}
-          image: postgres:14
+          image: "{{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}"
           imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.database.port }}

@@ -10,6 +10,6 @@ spec:
   capacity:
     storage: {{ .Values.database.storage }}
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   hostPath:
     path: /data/postgresql

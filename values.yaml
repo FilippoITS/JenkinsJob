@@ -21,7 +21,7 @@ database:
     repository: adamanticfilippo/postgres
     tag: ${BUILD_NUMBER}
   replicas: 1
-  storage: 9Gi
+  storage: 8Gi
   username: ps_user
   password: SecurePassword
   dbname: ps_db

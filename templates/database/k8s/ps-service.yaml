@@ -5,10 +5,11 @@ metadata:
   labels:
     app: {{ .Values.database.app }}
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: {{ .Values.database.port }}
       targetPort: {{ .Values.database.port }}
+      nodePort: 30042
   selector:
     app: {{ .Values.database.app }}
 

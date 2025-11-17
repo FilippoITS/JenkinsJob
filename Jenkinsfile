@@ -1,5 +1,10 @@
 pipeline {
     agent any
+
+    tools {
+            sonarScanner 'SonarScanner'
+    }
+
     environment {
         DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
@@ -65,6 +70,37 @@ pipeline {
                   --set frontend.image.tag=${BUILD_NUMBER} \
                   --set database.image.tag=${BUILD_NUMBER}
                 """
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            environment {
+                scannerHome = tool 'SonarScanner'
+            }
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=myproject \
+                        -Dsonar.sources=src \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=${env.SonarQube-token}
+                    """
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 

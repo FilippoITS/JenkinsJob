@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
+        DOCKERHUB_CRED = 'dockerhub-credentials'
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         SonarQubeToken = credentials('SonarQube-token')
     }

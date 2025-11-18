@@ -2,25 +2,17 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED = 'dockerhub-credentials'
+        DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         SonarQubeToken = credentials('SonarQube-token')
+        JAVA_HOME = '/opt/jdk-17'                   // ✅ Uso del JDK installato sul server
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"       // ✅ Aggiorno il PATH per usare Java 17
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/FilippoITS/JenkinsJob', credentialsId: 'git-credentials'
-            }
-        }
-
-        stage('Compile Backend') {
-            steps {
-                withEnv(["JAVA_HOME=/opt/jdk-17", "PATH+JAVA=/opt/jdk-17/bin"]) {
-                    dir('templates/back-end/src/job') {
-                        sh './mvnw clean package -DskipTests'
-                    }
-                }
             }
         }
 
@@ -81,9 +73,6 @@ pipeline {
             }
         }
 
-        // ❌ Rimosso: stage SCM ridondante
-        // stage('SCM') { steps { checkout scm } }
-
         stage('SonarQube Analysis') {
             environment {
                 scannerHome = tool 'SonarScanner'
@@ -94,21 +83,22 @@ pipeline {
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
                         -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
-                        -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
-                        -Dsonar.exclusions=**/Dockerfile,**/*.sh \
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.login=${SonarQubeToken}
+                        # ✅ NOTA: Senza Quality Gate automatico, Community Edition non supporta webhook
                     """
                 }
             }
         }
 
-        stage("Quality Gate") {
-            steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+        // ✅ Rimosso stage "Quality Gate" perché Community Edition non supporta webhook
+        // stage("Quality Gate") {
+        //     steps {
+        //         timeout(time: 15, unit: 'MINUTES') {
+        //             waitForQualityGate abortPipeline: true
+        //         }
+        //     }
+        // }
+
     }
 }

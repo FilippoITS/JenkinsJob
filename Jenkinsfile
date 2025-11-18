@@ -6,10 +6,20 @@ pipeline {
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         SonarQubeToken = credentials('SonarQube-token')
     }
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/FilippoITS/JenkinsJob', credentialsId: 'git-credentials'
+            }
+        }
+
+        // ✅ NUOVO: compilazione backend Java prima di SonarQube
+        stage('Compile Backend') {
+            steps {
+                dir('templates/back-end/src/job') {
+                    sh './mvnw clean package -DskipTests' // compila i .java in .class
+                }
             }
         }
 
@@ -70,11 +80,8 @@ pipeline {
             }
         }
 
-        stage('SCM') {
-            steps {
-                checkout scm
-            }
-        }
+        // ❌ Rimosso: stage SCM ridondante
+        // stage('SCM') { steps { checkout scm } }
 
         stage('SonarQube Analysis') {
             environment {
@@ -86,6 +93,8 @@ pipeline {
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
                         -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
+                        -Dsonar.java.binaries=templates/back-end/src/job/target/classes \   // ✅ aggiunta per far funzionare Sonar su Java
+                        -Dsonar.exclusions=**/Dockerfile,**/*.sh \                            // ✅ evita file inutili
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.login=${SonarQubeToken}
                     """
@@ -100,6 +109,5 @@ pipeline {
                 }
             }
         }
-
     }
 }

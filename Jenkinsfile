@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED = 'dockerhub-credentials'   // ID credenziali Docker
+        DOCKERHUB_CRED = 'dockerhub-credentials'
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         SonarQubeToken = credentials('SonarQube-token')
-        JAVA_HOME = '/opt/jdk-17'                   // ✅ Uso del JDK installato sul server
-        PATH = "${JAVA_HOME}/bin:${env.PATH}"       // ✅ Aggiorno il PATH per usare Java 17
+        JAVA_HOME = '/opt/jdk-17'
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
     }
 
     stages {
@@ -20,6 +20,14 @@ pipeline {
             steps {
                 script {
                     docker.build("adamanticfilippo/backend:${env.BUILD_NUMBER}", "-f templates/back-end/src/job/Dockerfile .")
+                }
+            }
+        }
+
+        stage('Build Backend Java') {
+            steps {
+                dir('templates/back-end/src/job') {
+                    sh 'mvn clean compile'
                 }
             }
         }
@@ -85,7 +93,6 @@ pipeline {
                         -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.login=${SonarQubeToken}
-                        # ✅ NOTA: Senza Quality Gate automatico, Community Edition non supporta webhook
                     """
                 }
             }

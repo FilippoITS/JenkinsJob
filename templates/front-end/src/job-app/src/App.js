@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-function JobTable({ status }) {
+function App() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/job/${status}`)
+    fetch("/job")
       .then((response) => response.json())
       .then((data) => {
         setItems(data);
@@ -15,7 +15,7 @@ function JobTable({ status }) {
         console.error("Errore nel fetch:", error);
         setLoading(false);
       });
-  }, [status]);
+  }, []);
 
   if (loading) return <p style={{ textAlign: "center" }}>Caricamento...</p>;
 
@@ -34,7 +34,7 @@ function JobTable({ status }) {
   const tableStyle = {
     borderCollapse: "collapse",
     width: "80%",
-    maxWidth: "1000px",
+    maxWidth: "800px",
     backgroundColor: "#fff",
     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
     borderRadius: "8px",
@@ -45,7 +45,8 @@ function JobTable({ status }) {
     backgroundColor: "#4CAF50",
     color: "white",
     padding: "12px 15px",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    letterSpacing: "0.05em"
   };
 
   const tdStyle = {
@@ -60,8 +61,8 @@ function JobTable({ status }) {
 
   return (
     <div style={containerStyle}>
-      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
-        {status.toUpperCase()} Jobs
+      <h1 style={{ textAlign: "center", color: "#333", marginBottom: "20px" }}>
+        Lista lavori da Flask
       </h1>
       <table style={tableStyle}>
         <thead>
@@ -73,15 +74,9 @@ function JobTable({ status }) {
         </thead>
         <tbody>
           {items.map((item, idx) => (
-            <tr
-              key={idx}
-              style={trStyle(idx)}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#d0e7f9"}
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  idx % 2 === 0 ? "#f9f9f9" : "#fff")
-              }
-            >
+            <tr key={idx} style={trStyle(idx)}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "#d0e7f9"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "#f9f9f9" : "#fff"}>
               {headers.map((key) => (
                 <td key={key} style={tdStyle}>{item[key]}</td>
               ))}
@@ -93,4 +88,4 @@ function JobTable({ status }) {
   );
 }
 
-export default JobTable;
+export default App;

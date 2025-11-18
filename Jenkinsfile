@@ -14,11 +14,12 @@ pipeline {
             }
         }
 
-        // ✅ NUOVO: compilazione backend Java prima di SonarQube
         stage('Compile Backend') {
             steps {
-                dir('templates/back-end/src/job') {
-                    sh './mvnw clean package -DskipTests' // compila i .java in .class
+                withEnv(["JAVA_HOME=/opt/jdk-17", "PATH+JAVA=/opt/jdk-17/bin"]) {
+                    dir('templates/back-end/src/job') {
+                        sh './mvnw clean package -DskipTests'
+                    }
                 }
             }
         }

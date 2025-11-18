@@ -85,7 +85,7 @@ pipeline {
                     sh """
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
-                        -Dsonar.sources=kubernetes/Project2ChartJava/templates \
+                        -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.login=${SonarQubeToken}
                     """

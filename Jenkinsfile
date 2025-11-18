@@ -93,8 +93,8 @@ pipeline {
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
                         -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
-                        -Dsonar.java.binaries=templates/back-end/src/job/target/classes \   # ✅ aggiunta per far funzionare Sonar su Java
-                        -Dsonar.exclusions=**/Dockerfile,**/*.sh \                            #✅ evita file inutili
+                        -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
+                        -Dsonar.exclusions=**/Dockerfile,**/*.sh \
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.login=${SonarQubeToken}
                     """

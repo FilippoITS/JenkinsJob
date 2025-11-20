@@ -56,7 +56,7 @@ public class JobControllerTest {
         mockMvc.perform(get("/job"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("[{'id':1,'project':'Prova1','startdate':'2023-01-01T09:00:00','enddate':'2023-01-02T17:00:00','status':'In Progress','data':'Data A'},"
-                        + "{'id':2,'project':'Prova 2','startdate':'2023-02-01T10:00:00','enddate':'2023-02-02T18:00:00','status':'Completed','data':'Data B'}]"));
+                .andExpect(content().json("[{\"id\":1,\"project\":\"Prova1\",\"startdate\":\"2023-01-01T09:00:00\",\"enddate\":\"2023-01-02T17:00:00\",\"status\":\"In Progress\",\"data\":\"Data A\"},"
+                        + "{\"id\":2,\"project\":\"Prova 2\",\"startdate\":\"2023-02-01T10:00:00\",\"enddate\":\"2023-02-02T18:00:00\",\"status\":\"Completed\",\"data\":\"Data B\"}]"));
     }
 }

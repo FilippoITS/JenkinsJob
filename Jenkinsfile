@@ -93,6 +93,7 @@ pipeline {
              steps {
                  dir('templates/front-end/src/job-app') {
                      sh 'npm install'
+                     sh 'npm install --save-dev jest-junit'
                      sh 'npm test -- --coverage --ci --reporters=default --reporters=jest-junit'
                  }
              }

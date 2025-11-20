@@ -39,7 +39,7 @@ pipeline {
                 }
             }
         }
-c
+
         stage('Build Postgres Docker') {
             steps {
                 script {

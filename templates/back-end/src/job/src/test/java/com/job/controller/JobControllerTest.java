@@ -46,17 +46,21 @@ public class JobControllerTest {
     }
 
     @Test
-    void testGetAllJobs() throws Exception {
+    void testGetAllJobs() {
+        // Simula il comportamento del repository
+        when(jobRepository.findAll()).thenReturn(Arrays.asList(job1, job2));
 
-        List<Job> jobs = Arrays.asList(job1, job2);
+        // Chiama il metodo nel servizio
+        List<Job> jobs = jobService.getAllJobs();
 
-        when(jobService.getAllJobs()).thenReturn(jobs);
+        // Verifica che il numero di oggetti restituiti sia corretto
+        assertEquals(2, jobs.size(), "Dovrebbero esserci 2 oggetti");
 
-        // Esegui la chiamata al controller e verifica la risposta
-        mockMvc.perform(get("/job"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("[{\"id\":1,\"project\":\"Prova1\",\"startdate\":\"2023-01-01T09:00:00\",\"enddate\":\"2023-01-02T17:00:00\",\"status\":\"In Progress\",\"data\":\"Data A\"},"
-                        + "{\"id\":2,\"project\":\"Prova 2\",\"startdate\":\"2023-02-01T10:00:00\",\"enddate\":\"2023-02-02T18:00:00\",\"status\":\"Completed\",\"data\":\"Data B\"}]"));
+        // Verifica che il primo job abbia il nome corretto
+        assertEquals("prova1", jobs.get(0).getProject(), "Il nome del primo job dovrebbe essere 'prova1'");
+
+        // Verifica che le date siano nel formato corretto (in questo caso, li confrontiamo come LocalDateTime)
+        assertEquals(LocalDateTime.of(2023, 1, 1, 9, 0), jobs.get(0).getStartDate(), "La startDate del primo job non è corretta");
+        assertEquals(LocalDateTime.of(2023, 2, 1, 9, 0), jobs.get(0).getEndDate(), "La endDate del primo job non è corretta");
+
     }
-}

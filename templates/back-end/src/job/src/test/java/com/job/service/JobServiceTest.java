@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class JobServiceTest {
     @BeforeEach
     void setUp() {
         job1 = new Job(1, "prova1", LocalDateTime.of(2023, 1, 1, 9, 0), LocalDateTime.of(2023, 2, 1, 9, 0), "completed", ".");
-        job2 = new Job(2L, "Job 2", LocalDateTime.of(2023, 2, 1, 9, 0), LocalDateTime.of(2023, 3, 1, 9, 0), ".");
+        job2 = new Job(2, "prova2", LocalDateTime.of(2023, 2, 1, 9, 0), LocalDateTime.of(2023, 3, 1, 9, 0), "completed", ".");
     }
 
     @Test
@@ -45,6 +46,6 @@ public class JobServiceTest {
 
 
         assertEquals(2, jobs.size(), "Dovrebbero esserci 2 oggetti");
-        assertEquals("Job 1", jobs.get(0).getId(), "Il nome del primo job dovrebbe essere 'prova1'");
+        assertEquals("Job 1", jobs.get(1).getId(), "Il nome del primo job dovrebbe essere 'prova1'");
     }
 }

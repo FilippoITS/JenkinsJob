@@ -1,13 +1,5 @@
-// src/App.test.js
 import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
-
-// Mock della fetch API
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    json: () => Promise.resolve([{ job: "Sviluppatore", company: "ABC" }, { job: "Designer", company: "XYZ" }]),
-  })
-);
 
 describe('App Component', () => {
   it('renders loading state initially', () => {

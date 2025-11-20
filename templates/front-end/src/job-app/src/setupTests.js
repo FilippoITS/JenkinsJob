@@ -1,7 +1,5 @@
-// Mock della fetch per TUTTI i test
-
+// src/setupTests.js
 console.log("setupTests.js LOADED");
-
 
 global.fetch = jest.fn(() =>
   Promise.resolve({
@@ -14,6 +12,6 @@ global.fetch = jest.fn(() =>
         status: "DONE",
         data: "Sample data"
       }
-    ]),
+    ])
   })
 );

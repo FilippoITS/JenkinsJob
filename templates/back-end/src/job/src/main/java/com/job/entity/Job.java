@@ -24,6 +24,17 @@ public class Job {
 
     private String data;
 
+    //Costruttore
+
+    public Job(Integer id, String project, LocalDateTime startdate, LocalDateTime enddate, String status, String data) {
+        this.id = id;
+        this.project = project;
+        this.startdate = startdate;
+        this.enddate = enddate;
+        this.status = status;
+        this.data = data;
+    }
+
     // Getters and Setters
 
     public Integer getId() {

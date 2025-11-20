@@ -91,7 +91,7 @@ pipeline {
 
          stage('Run Tests') {
              steps {
-                 dir('kubernetes/Project2ChartJava/templates/front-end/src/job-app') {
+                 dir('templates/front-end/src/job-app') {
                      sh 'npm install'
                      sh 'npm test -- --coverage --ci --reporters=default --reporters=jest-junit'
                  }

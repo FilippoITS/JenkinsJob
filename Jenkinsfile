@@ -90,13 +90,13 @@ pipeline {
                 }
 
          stage('Run Tests') {
-                     steps {
-                         script {
-                             // Esegui i test con Jest, genera report in formato JUnit
-                             sh 'npm test -- --coverage --ci --reporters=default --reporters=jest-junit'
-                         }
-                     }
+             steps {
+                 dir('kubernetes/Project2ChartJava/templates/front-end/src/job-app') {
+                     sh 'npm install'
+                     sh 'npm test -- --coverage --ci --reporters=default --reporters=jest-junit'
                  }
+             }
+         }
 
         stage('SonarQube Analysis') {
             environment {

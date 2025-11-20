@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -60,8 +61,8 @@ public class JobControllerTest {
         assertEquals("prova1", jobs.get(0).getProject(), "Il nome del primo job dovrebbe essere 'prova1'");
 
         // Verifica che le date siano nel formato corretto (in questo caso, li confrontiamo come LocalDateTime)
-        assertEquals(LocalDateTime.of(2023, 1, 1, 9, 0), jobs.get(0).getStartDate(), "La startDate del primo job non è corretta");
-        assertEquals(LocalDateTime.of(2023, 2, 1, 9, 0), jobs.get(0).getEndDate(), "La endDate del primo job non è corretta");
+        assertEquals(LocalDateTime.of(2023, 1, 1, 9, 0), jobs.get(0).getStartdate(), "La startDate del primo job non è corretta");
+        assertEquals(LocalDateTime.of(2023, 2, 1, 9, 0), jobs.get(0).getEnddate(), "La endDate del primo job non è corretta");
 
     }
 }

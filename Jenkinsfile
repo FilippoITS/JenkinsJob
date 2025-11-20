@@ -81,6 +81,12 @@ pipeline {
             }
         }
 
+        stage('Build & Test') {
+            steps {
+                sh 'mvn clean verify'
+            }
+        }
+
         stage('SonarQube Analysis') {
             environment {
                 scannerHome = tool 'SonarScanner'
@@ -94,6 +100,7 @@ pipeline {
                         -Dsonar.tests=templates/back-end/src/job/src/test/java \
                         -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
                         -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.coverage.jacoco.xmlReportPaths=target/jacoco-report/jacoco.xml \
                         -Dsonar.token=${SonarQubeToken}
                     """
                 }

@@ -46,6 +46,6 @@ public class JobServiceTest {
 
 
         assertEquals(2, jobs.size(), "Dovrebbero esserci 2 oggetti");
-        assertEquals("Job 1", jobs.get(1).getId(), "Il nome del primo job dovrebbe essere 'prova1'");
+        assertEquals("prova1", jobs.get(0).getProject(), "Il nome del primo job dovrebbe essere 'prova1'");
     }
 }

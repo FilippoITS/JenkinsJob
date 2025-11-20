@@ -83,7 +83,9 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh 'mvn clean verify'
+                dir('templates/back-end/src/job') {
+                    sh 'mvn clean verify'
+                }
             }
         }
 

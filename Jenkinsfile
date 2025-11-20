@@ -27,7 +27,7 @@ pipeline {
         stage('Build Backend Java') {
             steps {
                 dir('templates/back-end/src/job') {
-                    sh 'mvn clean install -U'  // Forza il recupero delle dipendenze
+                    sh 'mvn clean compile'
                 }
             }
         }
@@ -81,13 +81,13 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
-            steps {
-                dir('templates/back-end/src/job') {
-                    sh 'mvn clean verify'
+         stage('Build & Test') {
+                    steps {
+                        dir('templates/back-end/src/job') {
+                            sh 'mvn clean verify'
+                        }
+                    }
                 }
-            }
-        }
 
         stage('SonarQube Analysis') {
             environment {

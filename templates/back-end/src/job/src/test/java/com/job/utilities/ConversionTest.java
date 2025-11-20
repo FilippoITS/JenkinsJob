@@ -1,22 +1,22 @@
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.job.utilities.Conversion;
 import com.job.dto.JobDTO;
 import com.job.entity.Job;
 import org.junit.jupiter.api.Test;
 import java.util.Date;
+import java.time.LocalDateTime;
 
 public class ConversionTest {
+
+    LocalDateTime startDate = LocalDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault());
+    LocalDateTime endDate = LocalDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault());
 
     @Test
     public void testConvertToDTO() {
         // Crea un oggetto Job con dati di esempio
-        Job job = new Job();
-        job.setId(1L);
-        job.setProject("Project A");
-        job.setStartdate(new Date());
-        job.setEnddate(new Date());
-        job.setStatus("In Progress");
-        job.setData("Some job data");
+        Job job = new Job(1, "Project A", startDate, endDate, "In Progress", "Some job data");
+
 
         // Esegui la conversione
         JobDTO jobDTO = Conversion.convertToDTO(job);

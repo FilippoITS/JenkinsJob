@@ -64,3 +64,4 @@ public class JobControllerTest {
         assertEquals(LocalDateTime.of(2023, 2, 1, 9, 0), jobs.get(0).getEndDate(), "La endDate del primo job non è corretta");
 
     }
+}

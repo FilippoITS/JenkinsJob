@@ -27,7 +27,7 @@ pipeline {
         stage('Build Backend Java') {
             steps {
                 dir('templates/back-end/src/job') {
-                    sh 'mvn clean compile'
+                    sh 'mvn clean install -U'  // Forza il recupero delle dipendenze
                 }
             }
         }

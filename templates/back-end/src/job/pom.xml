@@ -67,18 +67,16 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.sonarsource.scanner.maven</groupId>
+            <artifactId>sonar-maven-plugin</artifactId>
+            <version>5.3.0.6276</version>
+        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
-
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.9.0.1185</version> <!-- Usa una versione disponibile, per esempio 3.9.0.1185 -->
-            </plugin>
-
-
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>

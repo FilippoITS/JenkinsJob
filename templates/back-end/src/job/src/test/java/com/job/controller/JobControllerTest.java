@@ -49,10 +49,6 @@ public class JobControllerTest {
     void testGetAllJobs() throws Exception {
 
         List<Job> jobs = Arrays.asList(job1, job2);
-        List<JobDTO> jobDTOs = Arrays.asList(
-                Conversion.convertToDTO(job1),
-                Conversion.convertToDTO(job2)
-        );
 
         when(jobService.getAllJobs()).thenReturn(jobs);
 

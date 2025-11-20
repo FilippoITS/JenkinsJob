@@ -8,6 +8,8 @@ class JobAppApplicationTests {
 
 	@Test
 	void contextLoads() {
+        // Questo test verifica solo che il contesto Spring Boot si avvii correttamente.
+        // Nessuna implementazione necessaria.
 	}
 
 }

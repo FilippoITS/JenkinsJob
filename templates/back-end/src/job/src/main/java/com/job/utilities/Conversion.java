@@ -3,7 +3,13 @@ package com.job.utilities;
 import com.job.dto.JobDTO;
 import com.job.entity.Job;
 
-class Conversion {
+
+public final class Conversion {
+
+    private Conversion() {
+        // costruttore privato per evitare istanziazione
+    }
+
     public static JobDTO convertToDTO(Job job) {
         JobDTO jobDTO = new JobDTO();
         jobDTO.setId(job.getId());

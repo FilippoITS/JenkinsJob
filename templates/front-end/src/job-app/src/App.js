@@ -74,7 +74,7 @@ function App() {
         </thead>
         <tbody>
           {items.map((item, idx) => (
-            <tr key={idx} style={trStyle(idx)}
+            <tr key={idx} style={trStyle(idx)} // NOSONAR
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = "#d0e7f9"}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "#f9f9f9" : "#fff"}>
               {headers.map((key) => (

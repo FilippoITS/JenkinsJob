@@ -91,6 +91,7 @@ pipeline {
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
                         -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
+                        -Dsonar.tests=templates/back-end/src/job/src/test/java
                         -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.token=${SonarQubeToken}

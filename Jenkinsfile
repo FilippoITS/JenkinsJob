@@ -89,6 +89,15 @@ pipeline {
                     }
                 }
 
+         stage('Run Tests') {
+                     steps {
+                         script {
+                             // Esegui i test con Jest, genera report in formato JUnit
+                             sh 'npm test -- --coverage --ci --reporters=default --reporters=jest-junit'
+                         }
+                     }
+                 }
+
         stage('SonarQube Analysis') {
             environment {
                 scannerHome = tool 'SonarScanner'

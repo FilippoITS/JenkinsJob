@@ -82,32 +82,28 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            environment {
-                scannerHome = tool 'SonarScanner'
-            }
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=job-app \
-                        -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
-                        -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
-                        -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.token=${SonarQubeToken}
-                    """
+            stage('SonarQube Analysis') {
+                environment {
+                    scannerHome = tool 'SonarScanner'
+                }
+                steps {
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=job-app \
+                            -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
+                            -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
+                            \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=templates/back-end/src/job/target/site/jacoco/jacoco.xml \
+                            \
+                            -Dsonar.javascript.lcov.reportPaths=templates/front-end/src/job-app/coverage/lcov.info \
+                            \
+                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.token=${SonarQubeToken}
+                        """
+                    }
                 }
             }
         }
-
-
-        // ✅ Rimosso stage "Quality Gate" perché Community Edition non supporta webhook
-        // stage("Quality Gate") {
-        //     steps {
-        //         timeout(time: 15, unit: 'MINUTES') {
-        //             waitForQualityGate abortPipeline: true
-        //         }
-        //     }
-        // }
-
     }
 }

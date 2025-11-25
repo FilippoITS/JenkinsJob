@@ -90,9 +90,17 @@ pipeline {
                     sh """
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
+                        \
                         -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
+                        -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/setupTests.js \
+                        \
+                        -Dsonar.tests=templates/back-end/src/job/src/test/java,templates/front-end/src/job-app/src \
+                        -Dsonar.test.inclusions=**/*.test.js,**/*.spec.js \
+                        \
                         -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
                         -Dsonar.coverage.jacoco.xmlReportPaths=templates/back-end/src/job/target/site/jacoco/jacoco.xml \
+                        -Dsonar.javascript.lcov.reportPaths=templates/front-end/src/job-app/coverage/lcov.info \
+                        \
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.token=${SonarQubeToken}
                     """

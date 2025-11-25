@@ -9,6 +9,13 @@ pipeline {
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
     }
 
+    tools {
+        // Se hai NodeJS configurato in "Global Tool Configuration" di Jenkins,
+        // metti qui il nome (es. 'NodeJS 18').
+        // Se npm è già nel path di sistema dell'agent, puoi rimuovere questa sezione.
+        nodejs 'NodeJS'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -16,10 +23,13 @@ pipeline {
             }
         }
 
-        stage('Build Backend Docker') {
+        stage('Test Frontend JS') {
             steps {
-                script {
-                    docker.build("adamanticfilippo/backend:${env.BUILD_NUMBER}", "-f templates/back-end/src/job/Dockerfile .")
+                dir('templates/front-end/src/job-app') {
+                    // Installa le dipendenze
+                    sh 'npm install'
+                    // Esegue i test e genera la cartella "coverage"
+                    sh 'npm test -- --coverage --watchAll=false'
                 }
             }
         }
@@ -28,6 +38,14 @@ pipeline {
             steps {
                 dir('templates/back-end/src/job') {
                     sh 'mvn clean verify'
+                }
+            }
+        }
+
+        stage('Build Backend Docker') {
+            steps {
+                script {
+                    docker.build("adamanticfilippo/backend:${env.BUILD_NUMBER}", "-f templates/back-end/src/job/Dockerfile .")
                 }
             }
         }
@@ -87,12 +105,12 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('SonarQube') {
+                    // Fix per i percorsi del frontend
                     sh """
                         sed -i 's|SF:src/|SF:templates/front-end/src/job-app/src/|g' templates/front-end/src/job-app/coverage/lcov.info
                     """
-                    sh "echo '--- DEBUG LCOV CONTENT ---'"
-                    sh "head -n 10 templates/front-end/src/job-app/coverage/lcov.info"
-                    sh "echo '--------------------------'"
+
+                    // Scanner Command
                     sh """
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
@@ -113,6 +131,5 @@ pipeline {
                 }
             }
         }
-
     }
 }

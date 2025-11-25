@@ -7,7 +7,8 @@ import org.springframework.context.ApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class JobAppApplicationTests {
 
     @Autowired
@@ -15,19 +16,11 @@ class JobAppApplicationTests {
 
     @Test
     void contextLoads() {
-        // Verifica che il contesto di Spring sia stato caricato correttamente.
-        // Se l'app non parte, questo test fallisce.
         assertThat(context).isNotNull();
     }
 
-    /**
-     * Questo test serve specificamente per SonarQube.
-     * La classe principale JobAppApplication ha un metodo 'main' statico.
-     * Senza questo test, SonarQube segnerà quel file come "non coperto".
-     */
     @Test
     void mainMethodTest() {
-        // Chiama il metodo main per garantire la coverage
-        JobAppApplication.main(new String[] {});
+        JobAppApplication.main(new String[] {"--server.port=0"});
     }
 }

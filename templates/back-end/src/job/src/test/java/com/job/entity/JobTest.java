@@ -8,37 +8,31 @@ import static org.junit.jupiter.api.Assertions.*;
 class JobTest {
 
     @Test
-    void testJobEntityGettersAndSetters() {
-        // Arrange: Creazione dell'istanza e dei dati di prova
+    void testJobGettersAndSetters() {
+        // Arrange
         Job job = new Job();
 
         Integer id = 1;
-        String project = "Progetto Alpha";
-        LocalDateTime startDate = LocalDateTime.now();
-        LocalDateTime endDate = LocalDateTime.now().plusDays(5);
-        String status = "IN_PROGRESS";
-        String data = "{\"key\": \"value\"}";
+        String project = "Test Project";
+        LocalDateTime now = LocalDateTime.now();
+        String status = "OPEN";
+        String data = "Some Data";
 
-        // Act: Utilizzo dei Setters
+        // Act
         job.setId(id);
         job.setProject(project);
-        job.setStartdate(startDate);
-        job.setEnddate(endDate);
+        job.setStartdate(now);
+        job.setEnddate(now);
         job.setStatus(status);
         job.setData(data);
 
-        // Assert: Verifica tramite Getters
+        // Assert
         assertEquals(id, job.getId());
         assertEquals(project, job.getProject());
-        assertEquals(startDate, job.getStartdate());
-        assertEquals(endDate, job.getEnddate());
+        assertEquals(now, job.getStartdate());
+        assertEquals(now, job.getEnddate());
         assertEquals(status, job.getStatus());
         assertEquals(data, job.getData());
     }
 
-    @Test
-    void testJobToStringOrEquals()
-
-        Job job1 = new Job();
-        assertNotNull(job1);
 }

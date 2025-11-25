@@ -88,11 +88,15 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh """
+                        sed -i 's|SF:src/|SF:templates/front-end/src/job-app/src/|g' templates/front-end/src/job-app/coverage/lcov.info
+                    """
+                    sh "head -n 5 templates/front-end/src/job-app/coverage/lcov.info"
+                    sh """
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=job-app \
                         \
                         -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
-                        -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/setupTests.js \
+                        -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/setupTests.js,**/reportWebVitals.js \
                         \
                         -Dsonar.tests=templates/back-end/src/job/src/test/java,templates/front-end/src/job-app/src \
                         -Dsonar.test.inclusions=**/*.test.js,**/*.spec.js \

@@ -9,14 +9,9 @@ pipeline {
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
     }
 
-    tools {
-        // Se hai NodeJS configurato in "Global Tool Configuration" di Jenkins,
-        // metti qui il nome (es. 'NodeJS 18').
-        // Se npm è già nel path di sistema dell'agent, puoi rimuovere questa sezione.
-        nodejs 'NodeJS'
-    }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/FilippoITS/JenkinsJob', credentialsId: 'git-credentials'
@@ -24,12 +19,19 @@ pipeline {
         }
 
         stage('Test Frontend JS') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    // Riutilizza il workspace corrente così i file restano per Sonar
+                    reuseNode true
+                }
+            }
             steps {
                 dir('templates/front-end/src/job-app') {
-                    // Installa le dipendenze
+                    // Installa dipendenze ed esegue i test dentro il container Node
                     sh 'npm install'
-                    // Esegue i test e genera la cartella "coverage"
                     sh 'npm test -- --coverage --watchAll=false'
+
                 }
             }
         }
@@ -109,6 +111,11 @@ pipeline {
                     sh """
                         sed -i 's|SF:src/|SF:templates/front-end/src/job-app/src/|g' templates/front-end/src/job-app/coverage/lcov.info
                     """
+
+                    // Debug per verificare che il file esista e sia corretto
+                    sh "echo '--- DEBUG LCOV CONTENT ---'"
+                    sh "head -n 5 templates/front-end/src/job-app/coverage/lcov.info || echo 'FILE NON TROVATO'"
+                    sh "echo '--------------------------'"
 
                     // Scanner Command
                     sh """

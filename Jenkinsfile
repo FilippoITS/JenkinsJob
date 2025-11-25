@@ -82,28 +82,29 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            stage('SonarQube Analysis') {
-                environment {
-                    scannerHome = tool 'SonarScanner'
-                }
-                steps {
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=job-app \
-                            -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
-                            -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
-                            \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=templates/back-end/src/job/target/site/jacoco/jacoco.xml \
-                            \
-                            -Dsonar.javascript.lcov.reportPaths=templates/front-end/src/job-app/coverage/lcov.info \
-                            \
-                            -Dsonar.host.url=http://localhost:9000 \
-                            -Dsonar.token=${SonarQubeToken}
-                        """
-                    }
+            environment {
+                scannerHome = tool 'SonarScanner'
+            }
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=job-app \
+                        -Dsonar.sources=templates/back-end/src/job/src/main/java,templates/front-end/src/job-app/src \
+                        -Dsonar.java.binaries=templates/back-end/src/job/target/classes \
+                        \
+                        ## NUOVO: Path report Backend (Java/JaCoCo) ##
+                        -Dsonar.coverage.jacoco.xmlReportPaths=templates/back-end/src/job/target/site/jacoco/jacoco.xml \
+                        \
+                        ## NUOVO: Path report Frontend (Angular/React LCOV) ##
+                        -Dsonar.javascript.lcov.reportPaths=templates/front-end/src/job-app/coverage/lcov.info \
+                        \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.token=${SonarQubeToken}
+                    """
                 }
             }
         }
+
     }
 }

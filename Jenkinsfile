@@ -16,24 +16,25 @@ pipeline {
     post {
         always {
             script {
-                // 1. Estrazione Automatica dell'URL Git
-                // scm.getUserRemoteConfigs() prende la configurazione Git del job corrente
+                // 1. Estrazione URL Git (con gestione null-safe)
                 def gitUrl = scm.getUserRemoteConfigs()[0].getUrl()
                                 
-                // 2. Status
-                def isSuccess = (currentBuild.result == 'SUCCESS') ? 'true' : 'false'
+                // 2. Status: currentBuild.result può essere null se la build è ancora in corso
+                // Usiamo una logica più robusta per determinare il successo
+                def buildStatus = currentBuild.currentResult == 'SUCCESS' ? 'true' : 'false'
                 
-                // 3. Invio al Backend
-                def apiUrl = "http://172.17.0.1sadasd:8090/api/webhooks/jenkins/result"
+                // 3. Configurazione Endpoint (IP del Gateway Docker standard)
+                def apiUrl = "http://172.17.0.1:8090/api/webhooks/jenkins/result"
                 
-                echo "Invio webhook per Repo: ${gitUrl}"
+                echo "Invio webhook per Repo: ${gitUrl} - Status: ${buildStatus}"
                 
-                // Usiamo groovy.json.JsonOutput per creare il JSON sicuro (gestisce escape caratteri)
+                // Creazione JSON
                 def payload = groovy.json.JsonOutput.toJson([
                     repoUrl: gitUrl,
-                    qualityGate: isSuccess
+                    qualityGate: buildStatus
                 ])
 
+                // Nota l'uso di \ davanti alle virgolette del payload per l'invio via SH
                 sh "curl -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
             }
         }

@@ -24,7 +24,7 @@ pipeline {
                 def isSuccess = (currentBuild.result == 'SUCCESS') ? 'true' : 'false'
                 
                 // 3. Invio al Backend
-                def apiUrl = "http://localhost:8090/api/webhooks/jenkins/result"
+                def apiUrl = "http://host.docker.internal:8090/api/webhooks/jenkins/result"
                 
                 echo "Invio webhook per Repo: ${gitUrl}"
                 

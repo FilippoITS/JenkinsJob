@@ -24,7 +24,7 @@ pipeline {
                 def buildStatus = currentBuild.currentResult == 'SUCCESS' ? 'true' : 'false'
                 
                 // 3. Configurazione Endpoint (IP del Gateway Docker standard)
-                def apiUrl = "http://172.17.0.1:8090/api/webhooks/jenkins/result"
+                def apiUrl = "http://localhost:8090/api/webhooks/jenkins/result"
                 
                 echo "Invio webhook per Repo: ${gitUrl} - Status: ${buildStatus}"
                 

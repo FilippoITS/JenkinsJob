@@ -23,6 +23,15 @@ pipeline {
                 }
             }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarServer') {
+                    sh "mvn -f templates/back-end/src/job/pom.xml sonar:sonar " +
+                    "-Dsonar.projectKey=TestSonarQube " +
+                    "-Dsonar.token= sqp_e1d7574b297cd646de8f3c4db98e6d3045273d40" 
+                    }
+                }
+            }
     }
 
     post {

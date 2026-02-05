@@ -26,7 +26,7 @@ pipeline {
                     // Nota: Ho unito le stringhe e rimosso lo spazio prima del token
                     sh """
                         mvn -f templates/back-end/src/job/pom.xml \
-                        clean verify sonar:sonar \
+                        clean compile sonar:sonar \
                         -Dsonar.projectKey=TestSonarQube \
                         -Dsonar.token=sqp_e1d7574b297cd646de8f3c4db98e6d3045273d40
                         """

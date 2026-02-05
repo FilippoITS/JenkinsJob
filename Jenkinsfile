@@ -19,7 +19,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarServer') {
-                    sh "mvn -f JenkinsJob/templates/back-end/src/job/pom.xml sonar:sonar -Dsonar.projectKey=TestSonarQube"
+                    sh "mvn -f templates/back-end/src/job/pom.xml sonar:sonar -Dsonar.projectKey=TestSonarQube"
                 }
             }
         }

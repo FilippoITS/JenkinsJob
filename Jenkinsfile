@@ -55,7 +55,7 @@ pipeline {
                 def containerIp = sh(script: 'hostname -i', returnStdout: true).trim()
                 def gatewayIp   = containerIp.tokenize('.')[0..2].join('.') + '.1'
                 
-                // Variabili di default in caso di fallimento
+                // Valori di default (tutti a zero o UNKNOWN)
                 def metricsMap = [
                     status: 'UNKNOWN',
                     bugs: '0',
@@ -65,38 +65,34 @@ pipeline {
                     duplications: '0.0'
                 ]
 
-                // Proviamo a recuperare le metriche SOLO se la build non è fallita prima
+                // Recuperiamo le metriche SOLO se la build non è fallita prima (Compile/Test)
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
                     withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                         try {
-                            echo "--- RECUPERO METRICHE DA SONARQUBE ---"
+                            echo "--- RECUPERO METRICHE OVERALL DA SONARQUBE ---"
+                            // Le chiavi senza prefisso 'new_' indicano metriche OVERALL
                             def sonarApiUrl = "http://${gatewayIp}:9000/api/measures/component?component=TestSonarQube&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status"
                             
-                            // Aggiungo -f per far fallire curl se riceve 401/404 invece di restituire testo errore
                             def sonarResponse = sh(script: "curl -s -f -u ${SONAR_TOKEN}: ${sonarApiUrl}", returnStdout: true).trim()
                             
                             def jsonSlurper = new JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)
                             
-                            // Controllo di sicurezza: verifichiamo che 'component' e 'measures' esistano
-                            if (sonarData && sonarData.component && sonarData.component.measures) {
+                            if (sonarData?.component?.measures) {
                                 sonarData.component.measures.each { measure ->
                                     metricsMap[measure.metric] = measure.value
                                 }
-                                echo "Metriche recuperate con successo."
-                            } else {
-                                echo "ATTENZIONE: Risposta SonarQube non valida o incompleta."
                             }
                         } catch (Exception e) {
-                            echo "ERRORE nel recupero metriche SonarQube: ${e.message}"
-                            // Non facciamo fallire la pipeline qui, usiamo i valori di default
+                            echo "Non sono riuscito a leggere le metriche (SonarQube spento o errore rete): ${e.message}"
                         }
                     }
                 }
 
-                // Preparazione Payload
+                // Invio Webhook
                 def apiUrl      = "http://${gatewayIp}:8090/api/webhooks/jenkins"
-                def gitUrl      = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://github.com/repo-placeholder"
+                // Se scm è null (es. test locale), usa un placeholder
+                def gitUrl      = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://local-test"
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
                 def payload = JsonOutput.toJson([
@@ -112,11 +108,11 @@ pipeline {
                     ]
                 ])
 
-                echo "Invio webhook a: ${apiUrl}"
+                echo "Invio dati Overall a WebApp: ${apiUrl}"
                 try {
                      sh "curl -v -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
                 } catch (Exception e) {
-                     echo "Impossibile inviare webhook alla WebApp: ${e.message}"
+                     echo "Errore invio Webhook: ${e.message}"
                 }
             }
         }

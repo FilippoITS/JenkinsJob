@@ -55,43 +55,68 @@ pipeline {
                 def containerIp = sh(script: 'hostname -i', returnStdout: true).trim()
                 def gatewayIp   = containerIp.tokenize('.')[0..2].join('.') + '.1'
                 
-                // --- CORREZIONE QUI: Uso le chiavi snake_case (come Sonar) ---
+                // 1. Definiamo i valori di default (Mock)
                 def metricsMap = [
-                    alert_status: 'UNKNOWN',
-                    bugs: '0',
-                    vulnerabilities: '5',
-                    code_smells: '0',              // Era codeSmells, ORA è code_smells
-                    coverage: '0.0',
-                    duplicated_lines_density: '0.0' // Era duplications, ORA è duplicated_lines_density
+                    alert_status: 'MOCK_DATA', // Se vedi questo nel DB, la chiamata API è fallita
+                    bugs: '-1',
+                    vulnerabilities: '-1',
+                    code_smells: '-1',
+                    coverage: '-1.0',
+                    duplicated_lines_density: '-1.0'
                 ]
 
+                // Eseguiamo solo se la compilazione è andata bene
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
                     withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                         try {
-                            // Queste metriche SONO l'Overall Code (nessun prefisso "new_")
-                            def sonarApiUrl = "http://${gatewayIp}:9000/api/measures/component?component=TestSonarQube&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status"
+                            echo "================= INIZIO DEBUG API SONARQUBE ================="
                             
-                            def sonarResponse = sh(script: "curl -s -f -u ${SONAR_TOKEN}: ${sonarApiUrl}", returnStdout: true).trim()
+                            // Definisco le chiavi che voglio (Overall)
+                            def keys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status"
+                            
+                            // Definisco l'URL
+                            def sonarApiUrl = "http://${gatewayIp}:9000/api/measures/component?component=TestSonarQube&metricKeys=${keys}"
+                            echo "1. URL Chiamata: ${sonarApiUrl}"
+                            
+                            // Eseguo CURL senza flag silenziosi per vedere eventuali errori di connessione
+                            // Tolgo il -f per vedere il corpo anche in caso di errore 404/401
+                            def sonarResponse = sh(script: "curl -v -u ${SONAR_TOKEN}: \"${sonarApiUrl}\"", returnStdout: true).trim()
+                            
+                            echo "2. RISPOSTA GREZZA DA SONARQUBE:"
+                            echo "${sonarResponse}"
+                            
+                            // Parsing
                             def jsonSlurper = new JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)
                             
+                            // Verifica esistenza dati
                             if (sonarData?.component?.measures) {
+                                echo "3. Trovate ${sonarData.component.measures.size()} metriche. Inizio mappatura:"
                                 sonarData.component.measures.each { measure ->
-                                    // Sovrascrive i default con i dati veri
+                                    echo "   - Metrica trovata: [${measure.metric}] Valore: [${measure.value}]"
+                                    
+                                    // Aggiorno la mappa
                                     metricsMap[measure.metric] = measure.value
                                 }
+                            } else {
+                                echo "ERROR: Il JSON è valido ma non contiene 'component.measures'. Forse il Project Key 'TestSonarQube' è errato?"
+                                if (sonarData?.errors) {
+                                    echo "SONAR ERROR: ${sonarData.errors}"
+                                }
                             }
+                            echo "================= FINE DEBUG API SONARQUBE ================="
+
                         } catch (Exception e) {
-                            echo "Errore lettura metriche: ${e.message}"
+                            echo "EXCEPTION GRAVE DURANTE IL PARSING: ${e.message}"
                         }
                     }
                 }
 
+                // Invio al Backend
                 def apiUrl = "http://${gatewayIp}:8090/api/webhooks/jenkins"
                 def gitUrl = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://github.com/placeholder"
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
-                // Costruiamo il JSON finale usando le chiavi corrette dalla mappa
                 def payload = JsonOutput.toJson([
                     repoUrl: gitUrl,
                     qualityGate: buildStatus,
@@ -99,13 +124,13 @@ pipeline {
                         status: metricsMap['alert_status'],
                         bugs: metricsMap['bugs'],
                         vulnerabilities: metricsMap['vulnerabilities'],
-                        codeSmells: metricsMap['code_smells'],              // Ora trova la chiave corretta
+                        codeSmells: metricsMap['code_smells'], // Nota: Chiave camelCase per il tuo backend, valore preso da chiave snake_case della mappa
                         coverage: metricsMap['coverage'],
-                        duplications: metricsMap['duplicated_lines_density'] // Ora trova la chiave corretta
+                        duplications: metricsMap['duplicated_lines_density']
                     ]
                 ])
 
-                echo "Invio dati a WebApp..."
+                echo "Invio payload finale: ${payload}"
                 try {
                      sh "curl -v -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
                 } catch (Exception e) {
@@ -113,5 +138,5 @@ pipeline {
                 }
             }
         }
-    }
+    }sadda
 }

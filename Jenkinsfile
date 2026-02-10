@@ -55,60 +55,57 @@ pipeline {
                 def containerIp = sh(script: 'hostname -i', returnStdout: true).trim()
                 def gatewayIp   = containerIp.tokenize('.')[0..2].join('.') + '.1'
                 
-                // Valori di default (tutti a zero o UNKNOWN)
+                // --- CORREZIONE QUI: Uso le chiavi snake_case (come Sonar) ---
                 def metricsMap = [
-                    status: 'UNKNOWN',
+                    alert_status: 'UNKNOWN',
                     bugs: '0',
                     vulnerabilities: '0',
-                    codeSmells: '0',
+                    code_smells: '0',              // Era codeSmells, ORA è code_smells
                     coverage: '0.0',
-                    duplications: '0.0'
+                    duplicated_lines_density: '0.0' // Era duplications, ORA è duplicated_lines_density
                 ]
 
-                // Recuperiamo le metriche SOLO se la build non è fallita prima (Compile/Test)
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
                     withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                         try {
-                            echo "--- RECUPERO METRICHE OVERALL DA SONARQUBE ---"
-                            // Le chiavi senza prefisso 'new_' indicano metriche OVERALL
+                            // Queste metriche SONO l'Overall Code (nessun prefisso "new_")
                             def sonarApiUrl = "http://${gatewayIp}:9000/api/measures/component?component=TestSonarQube&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status"
                             
                             def sonarResponse = sh(script: "curl -s -f -u ${SONAR_TOKEN}: ${sonarApiUrl}", returnStdout: true).trim()
-                            
                             def jsonSlurper = new JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)
                             
                             if (sonarData?.component?.measures) {
                                 sonarData.component.measures.each { measure ->
+                                    // Sovrascrive i default con i dati veri
                                     metricsMap[measure.metric] = measure.value
                                 }
                             }
                         } catch (Exception e) {
-                            echo "Non sono riuscito a leggere le metriche (SonarQube spento o errore rete): ${e.message}"
+                            echo "Errore lettura metriche: ${e.message}"
                         }
                     }
                 }
 
-                // Invio Webhook
-                def apiUrl      = "http://${gatewayIp}:8090/api/webhooks/jenkins"
-                // Se scm è null (es. test locale), usa un placeholder
-                def gitUrl      = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://local-test"
+                def apiUrl = "http://${gatewayIp}:8090/api/webhooks/jenkins"
+                def gitUrl = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://github.com/placeholder"
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
+                // Costruiamo il JSON finale usando le chiavi corrette dalla mappa
                 def payload = JsonOutput.toJson([
                     repoUrl: gitUrl,
                     qualityGate: buildStatus,
                     sonarStats: [
-                        status: metricsMap['alert_status'] ?: 'UNKNOWN',
+                        status: metricsMap['alert_status'],
                         bugs: metricsMap['bugs'],
                         vulnerabilities: metricsMap['vulnerabilities'],
-                        codeSmells: metricsMap['code_smells'],
+                        codeSmells: metricsMap['code_smells'],              // Ora trova la chiave corretta
                         coverage: metricsMap['coverage'],
-                        duplications: metricsMap['duplicated_lines_density']
+                        duplications: metricsMap['duplicated_lines_density'] // Ora trova la chiave corretta
                     ]
                 ])
 
-                echo "Invio dati Overall a WebApp: ${apiUrl}"
+                echo "Invio dati a WebApp..."
                 try {
                      sh "curl -v -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
                 } catch (Exception e) {

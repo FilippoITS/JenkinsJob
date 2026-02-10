@@ -59,7 +59,7 @@ pipeline {
                 def metricsMap = [
                     alert_status: 'UNKNOWN',
                     bugs: '0',
-                    vulnerabilities: '0',
+                    vulnerabilities: '5',
                     code_smells: '0',              // Era codeSmells, ORA è code_smells
                     coverage: '0.0',
                     duplicated_lines_density: '0.0' // Era duplications, ORA è duplicated_lines_density

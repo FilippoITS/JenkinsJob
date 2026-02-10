@@ -20,19 +20,16 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            // 1. Aggiungiamo questo blocco per caricare il secret
             environment {
-                // 'SonarQubeToken' è l'ID che hai dato su Jenkins
                 MY_SONAR_TOKEN = credentials('SonarQubeToken') 
             }
             steps {
                 withSonarQubeEnv('SonarServer') {
-                    // 2. Usiamo la variabile ${MY_SONAR_TOKEN} nel comando
                     sh """
                         mvn -f templates/back-end/src/job/pom.xml \
                         clean verify sonar:sonar \
                         -Dsonar.projectKey=TestSonarQube \
-                        -Dsonar.token=${MY_SONAR_TOKEN}
+                        -Dsonar.login=${MY_SONAR_TOKEN}
                         """
                 }
             }

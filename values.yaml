@@ -5,6 +5,7 @@ backend:
   replicas: 2
   port: 5000
   app: job-be
+  
 
 frontend:
   image:

@@ -16,19 +16,23 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Esecuzione test...'
-                // Qui andrebbe sh "mvn -f templates/back-end/src/job/pom.xml test"
             }
         }
 
         stage('SonarQube Analysis') {
+            // 1. Aggiungiamo questo blocco per caricare il secret
+            environment {
+                // 'SonarQubeToken' è l'ID che hai dato su Jenkins
+                MY_SONAR_TOKEN = credentials('SonarQubeToken') 
+            }
             steps {
                 withSonarQubeEnv('SonarServer') {
-                    // Nota: Ho unito le stringhe e rimosso lo spazio prima del token
+                    // 2. Usiamo la variabile ${MY_SONAR_TOKEN} nel comando
                     sh """
                         mvn -f templates/back-end/src/job/pom.xml \
                         clean verify sonar:sonar \
                         -Dsonar.projectKey=TestSonarQube \
-                        -Dsonar.token=sqp_e1d7574b297cd646de8f3c4db98e6d3045273d40
+                        -Dsonar.token=${MY_SONAR_TOKEN}
                         """
                 }
             }
@@ -38,16 +42,16 @@ pipeline {
     post {
         always {
             script {
-                // Recupero IP per comunicazione Docker
                 def containerIp = sh(script: 'hostname -i', returnStdout: true).trim()
+                // Nota: questo calcolo presuppone una rete docker standard /16
                 def gatewayIp   = containerIp.tokenize('.')[0..2].join('.') + '.1'
 
                 echo "Container IP: ${containerIp}"
                 echo "Gateway IP calcolato: ${gatewayIp}"
 
-                // Preparazione dati Webhook
                 def apiUrl      = "http://${gatewayIp}:8090/api/webhooks/jenkins"
-                def gitUrl      = scm.getUserRemoteConfigs()[0].getUrl()
+                // Controllo difensivo se scm è null (può capitare in test locali)
+                def gitUrl      = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://github.com/repo-placeholder"
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
                 def payload = groovy.json.JsonOutput.toJson([

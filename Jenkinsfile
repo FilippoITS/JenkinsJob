@@ -55,9 +55,8 @@ pipeline {
                 def containerIp = sh(script: 'hostname -i', returnStdout: true).trim()
                 def gatewayIp   = containerIp.tokenize('.')[0..2].join('.') + '.1'
                 
-                // 1. Definiamo i valori di default (Mock)
                 def metricsMap = [
-                    alert_status: 'MOCK_DATA', // Se vedi questo nel DB, la chiamata API è fallita
+                    alert_status: 'MOCK_DATA', 
                     bugs: '-1',
                     vulnerabilities: '-1',
                     code_smells: '-1',
@@ -65,7 +64,6 @@ pipeline {
                     duplicated_lines_density: '-1.0'
                 ]
 
-                // Eseguiamo solo se la compilazione è andata bene
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
                     withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                         try {

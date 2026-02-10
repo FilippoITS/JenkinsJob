@@ -24,10 +24,12 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
+                // Recupera il token per usarlo nello script Shell Maven
                 MY_SONAR_TOKEN = credentials('SonarQubeToken') 
             }
             steps {
                 script {
+                    // Lancia l'analisi
                     withSonarQubeEnv('SonarServer') {
                         sh """
                             mvn -f templates/back-end/src/job/pom.xml \
@@ -37,8 +39,8 @@ pipeline {
                         """
                     }
                     
-                    // 1. ASPETTA CHE SONARQUBE FINISCA I CALCOLI
-                    // Questo step mette in pausa la pipeline finché Sonar non risponde "Fatto!"
+                    // Aspetta il risultato (Quality Gate)
+                    // Nota: Funzionerà solo se hai fatto il PASSO 1 nella config di Jenkins
                     timeout(time: 2, unit: 'MINUTES') {
                         waitForQualityGate abortPipeline: true
                     }
@@ -50,56 +52,71 @@ pipeline {
     post {
         always {
             script {
-                // Recupero IP per le chiamate
                 def containerIp = sh(script: 'hostname -i', returnStdout: true).trim()
                 def gatewayIp   = containerIp.tokenize('.')[0..2].join('.') + '.1'
                 
-                // Credenziale per le chiamate API
-                withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
-                    
-                    echo "--- RECUPERO METRICHE DA SONARQUBE ---"
-                    
-                    // 2. CHIAMATA API A SONARQUBE
-                    // Chiediamo: bugs, vulnerabilità, code smells, coverage e duplicazioni
-                    def sonarApiUrl = "http://${gatewayIp}:9000/api/measures/component?component=TestSonarQube&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status"
-                    
-                    // Eseguiamo curl e salviamo la risposta JSON in una variabile
-                    def sonarResponse = sh(script: "curl -s -u ${SONAR_TOKEN}: ${sonarApiUrl}", returnStdout: true).trim()
-                    
-                    // 3. PARSING DEI DATI (Estraiamo i numeri dal JSON di Sonar)
-                    def jsonSlurper = new JsonSlurper()
-                    def sonarData = jsonSlurper.parseText(sonarResponse)
-                    
-                    // Mappa per semplificare i dati da mandare alla tua app
-                    def metricsMap = [:]
-                    sonarData.component.measures.each { measure ->
-                        metricsMap[measure.metric] = measure.value
+                // Variabili di default in caso di fallimento
+                def metricsMap = [
+                    status: 'UNKNOWN',
+                    bugs: '0',
+                    vulnerabilities: '0',
+                    codeSmells: '0',
+                    coverage: '0.0',
+                    duplications: '0.0'
+                ]
+
+                // Proviamo a recuperare le metriche SOLO se la build non è fallita prima
+                if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
+                    withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
+                        try {
+                            echo "--- RECUPERO METRICHE DA SONARQUBE ---"
+                            def sonarApiUrl = "http://${gatewayIp}:9000/api/measures/component?component=TestSonarQube&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status"
+                            
+                            // Aggiungo -f per far fallire curl se riceve 401/404 invece di restituire testo errore
+                            def sonarResponse = sh(script: "curl -s -f -u ${SONAR_TOKEN}: ${sonarApiUrl}", returnStdout: true).trim()
+                            
+                            def jsonSlurper = new JsonSlurper()
+                            def sonarData = jsonSlurper.parseText(sonarResponse)
+                            
+                            // Controllo di sicurezza: verifichiamo che 'component' e 'measures' esistano
+                            if (sonarData && sonarData.component && sonarData.component.measures) {
+                                sonarData.component.measures.each { measure ->
+                                    metricsMap[measure.metric] = measure.value
+                                }
+                                echo "Metriche recuperate con successo."
+                            } else {
+                                echo "ATTENZIONE: Risposta SonarQube non valida o incompleta."
+                            }
+                        } catch (Exception e) {
+                            echo "ERRORE nel recupero metriche SonarQube: ${e.message}"
+                            // Non facciamo fallire la pipeline qui, usiamo i valori di default
+                        }
                     }
+                }
 
-                    echo "Metriche estratte: ${metricsMap}"
+                // Preparazione Payload
+                def apiUrl      = "http://${gatewayIp}:8090/api/webhooks/jenkins"
+                def gitUrl      = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://github.com/repo-placeholder"
+                def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
-                    // 4. PREPARIAMO IL PAYLOAD PER LA TUA WEBAPP
-                    def apiUrl      = "http://${gatewayIp}:8090/api/webhooks/jenkins"
-                    def gitUrl      = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "https://github.com/repo-placeholder"
-                    def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
+                def payload = JsonOutput.toJson([
+                    repoUrl: gitUrl,
+                    qualityGate: buildStatus,
+                    sonarStats: [
+                        status: metricsMap['alert_status'] ?: 'UNKNOWN',
+                        bugs: metricsMap['bugs'],
+                        vulnerabilities: metricsMap['vulnerabilities'],
+                        codeSmells: metricsMap['code_smells'],
+                        coverage: metricsMap['coverage'],
+                        duplications: metricsMap['duplicated_lines_density']
+                    ]
+                ])
 
-                    def payload = JsonOutput.toJson([
-                        repoUrl: gitUrl,
-                        qualityGate: buildStatus,
-                        sonarStats: [
-                            status: metricsMap['alert_status'], // OK o ERROR
-                            bugs: metricsMap['bugs'],
-                            vulnerabilities: metricsMap['vulnerabilities'],
-                            codeSmells: metricsMap['code_smells'],
-                            coverage: metricsMap['coverage'],
-                            duplications: metricsMap['duplicated_lines_density']
-                        ]
-                    ])
-
-                    echo "Invio webhook a: ${apiUrl}"
-                    
-                    // 5. INVIO ALLA TUA WEBAPP
-                    sh "curl -v -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
+                echo "Invio webhook a: ${apiUrl}"
+                try {
+                     sh "curl -v -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
+                } catch (Exception e) {
+                     echo "Impossibile inviare webhook alla WebApp: ${e.message}"
                 }
             }
         }

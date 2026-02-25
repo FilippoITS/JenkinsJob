@@ -18,7 +18,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                MY_SONAR_TOKEN = credentials('SONAR_API_TOKEN') 
+                MY_SONAR_TOKEN = credentials('SONAR_TOKEN') 
             }
             steps {
                 script {
@@ -27,7 +27,7 @@ pipeline {
                             mvn -f templates/back-end/src/job/pom.xml \
                             clean verify sonar:sonar \
                             -Dsonar.projectKey=TestSonarQube \
-                            -Dsonar.login=${MY_SONAR_API_TOKEN}
+                            -Dsonar.login=${MY_SONAR_TOKEN}
                         """
                     }
                     
@@ -56,7 +56,7 @@ pipeline {
                 ]
 
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
-                    withCredentials([string(credentialsId: 'SONAR_API_TOKEN', variable: 'SonarQubeToken')]) {
+                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SonarQubeToken')]) {
                         try {
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc"
                             

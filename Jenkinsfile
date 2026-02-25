@@ -18,7 +18,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                MY_SONAR_TOKEN = credentials('SONAR_TOKEN') 
+                MY_SONAR_TOKEN = credentials('SONAR_API_TOKEN') 
             }
             steps {
                 script {
@@ -27,7 +27,7 @@ pipeline {
                             mvn -f templates/back-end/src/job/pom.xml \
                             clean verify sonar:sonar \
                             -Dsonar.projectKey=TestSonarQube \
-                            -Dsonar.login=${MY_SONAR_TOKEN}
+                            -Dsonar.login=${MY_SONAR_API_TOKEN}
                         """
                     }
                     
@@ -56,21 +56,13 @@ pipeline {
                 ]
 
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
-                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SonarQubeToken')]) {
+                    withCredentials([string(credentialsId: 'SONAR_API_TOKEN', variable: 'SonarQubeToken')]) {
                         try {
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc"
+                            
                             def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
                             
-                            // 1. Stampiamo l'URL per vedere se è corretto
-                            echo "=== DEBUG API SONARQUBE ==="
-                            echo "Chiamata URL: ${sonarApiUrl}"
-                            
-                            // 2. Togliamo -f così SonarQube ci risponde con l'errore in formato JSON
-                            def sonarResponse = sh(script: "curl -s -u ${SonarQubeToken}: '${sonarApiUrl}'", returnStdout: true).trim()
-                            
-                            // 3. Stampiamo la risposta vera e propria!
-                            echo "Risposta da SonarQube: ${sonarResponse}"
-                            echo "==========================="
+                            def sonarResponse = sh(script: "curl -s -f -u \$SonarQubeToken: \"${sonarApiUrl}\"", returnStdout: true).trim()
                             
                             def jsonSlurper = new JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)
@@ -79,9 +71,6 @@ pipeline {
                                 sonarData.component.measures.each { measure ->
                                     metricsMap[measure.metric] = measure.value
                                 }
-                                echo "Metriche aggiornate con successo!"
-                            } else {
-                                echo "Attenzione: Nessuna metrica trovata nel JSON!"
                             }
                         } catch (Exception e) {
                             echo "Warning: Impossibile recuperare metriche SonarQube: ${e.message}"

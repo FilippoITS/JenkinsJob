@@ -61,14 +61,11 @@ pipeline {
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc"
                             def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
                             
-                            // 1. Stampiamo l'URL per vedere se è corretto
                             echo "=== DEBUG API SONARQUBE ==="
                             echo "Chiamata URL: ${sonarApiUrl}"
                             
-                            // 2. Togliamo -f così SonarQube ci risponde con l'errore in formato JSON
                             def sonarResponse = sh(script: "curl -s -u \$SonarQubeToken: '${sonarApiUrl}'", returnStdout: true).trim()
                             
-                            // 3. Stampiamo la risposta vera e propria!
                             echo "Risposta da SonarQube: ${sonarResponse}"
                             echo "==========================="
                             
@@ -107,7 +104,6 @@ pipeline {
                     ]
                 ])
 
-                // 4. Invio Webhook al Backend
                 try {
                      sh "curl -s -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
                      echo "Webhook inviato con successo a ${apiUrl}"

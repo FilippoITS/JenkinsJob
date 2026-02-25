@@ -59,10 +59,18 @@ pipeline {
                     withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SonarQubeToken')]) {
                         try {
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc"
-                            
                             def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
                             
-                            def sonarResponse = sh(script: "curl -s -f -u ${SonarQubeToken}: \"${sonarApiUrl}\"", returnStdout: true).trim()
+                            // 1. Stampiamo l'URL per vedere se è corretto
+                            echo "=== DEBUG API SONARQUBE ==="
+                            echo "Chiamata URL: ${sonarApiUrl}"
+                            
+                            // 2. Togliamo -f così SonarQube ci risponde con l'errore in formato JSON
+                            def sonarResponse = sh(script: "curl -s -u ${SonarQubeToken}: '${sonarApiUrl}'", returnStdout: true).trim()
+                            
+                            // 3. Stampiamo la risposta vera e propria!
+                            echo "Risposta da SonarQube: ${sonarResponse}"
+                            echo "==========================="
                             
                             def jsonSlurper = new JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)
@@ -71,6 +79,9 @@ pipeline {
                                 sonarData.component.measures.each { measure ->
                                     metricsMap[measure.metric] = measure.value
                                 }
+                                echo "Metriche aggiornate con successo!"
+                            } else {
+                                echo "Attenzione: Nessuna metrica trovata nel JSON!"
                             }
                         } catch (Exception e) {
                             echo "Warning: Impossibile recuperare metriche SonarQube: ${e.message}"

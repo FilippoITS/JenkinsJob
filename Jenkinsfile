@@ -22,7 +22,7 @@ pipeline {
             }
             steps {
                 script {
-                    withSonarQubeEnv('SonarServer') {
+                    withSonarQubeEnv('SonarQubeServer') {
                         sh """
                             mvn -f templates/back-end/src/job/pom.xml \
                             clean verify sonar:sonar \
@@ -56,13 +56,13 @@ pipeline {
                 ]
 
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
-                    withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SonarQubeToken')]) {
                         try {
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc"
                             
                             def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
                             
-                            def sonarResponse = sh(script: "curl -s -f -u ${SONAR_TOKEN}: \"${sonarApiUrl}\"", returnStdout: true).trim()
+                            def sonarResponse = sh(script: "curl -s -f -u ${SonarQubeToken}: \"${sonarApiUrl}\"", returnStdout: true).trim()
                             
                             def jsonSlurper = new JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)

@@ -42,11 +42,9 @@ pipeline {
     post {
         always {
             script {
-                // 1. Configurazione Networking
-                def containerIp = sh(script: 'hostname -i', returnStdout: true).trim()
-                def gatewayIp   = containerIp.tokenize('.')[0..2].join('.') + '.1'
+                def sonarBaseUrl = "https://sonarqube.ci.dev.adamantic.cloud" 
+                def backendBaseUrl = "https://adm-ci.ci.dev.adamantic.cloud" 
                 
-                // --- MODIFICA 1: Aggiunto ncloc ai default ---
                 def metricsMap = [
                     alert_status: 'UNKNOWN',
                     bugs: '0',
@@ -57,14 +55,12 @@ pipeline {
                     ncloc: '0' 
                 ]
 
-                // 2. Recupero metriche
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
                     withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                         try {
-                            // --- MODIFICA 2: Aggiunto ncloc alla query API ---
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc"
                             
-                            def sonarApiUrl = "http://${gatewayIp}:9000/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
+                            def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
                             
                             def sonarResponse = sh(script: "curl -s -f -u ${SONAR_TOKEN}: \"${sonarApiUrl}\"", returnStdout: true).trim()
                             
@@ -82,8 +78,7 @@ pipeline {
                     }
                 }
 
-                // 3. Preparazione Payload
-                def apiUrl = "http://${gatewayIp}:8090/api/webhooks/jenkins"
+                def apiUrl = "${backendBaseUrl}/api/webhooks/jenkins"
                 def gitUrl = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "UNKNOWN_REPO"
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
@@ -97,12 +92,11 @@ pipeline {
                         codeSmells: metricsMap['code_smells'],
                         coverage: metricsMap['coverage'],
                         duplications: metricsMap['duplicated_lines_density'],
-                        // --- MODIFICA 3: Mappatura nel JSON ---
                         ncloc: metricsMap['ncloc']
                     ]
                 ])
 
-                // 4. Invio Webhook
+                // 4. Invio Webhook al Backend
                 try {
                      sh "curl -s -X POST -H 'Content-Type: application/json' -d '${payload}' ${apiUrl}"
                      echo "Webhook inviato con successo a ${apiUrl}"

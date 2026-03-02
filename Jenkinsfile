@@ -52,13 +52,15 @@ pipeline {
                     code_smells: '0',
                     coverage: '0.0',
                     duplicated_lines_density: '0.0',
+                    security_hotspots: '0', // <-- AGGIUNTO QUI (Default)
                     ncloc: '0' 
                 ]
 
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
                     withCredentials([string(credentialsId: 'SONAR_API_TOKEN', variable: 'SonarQubeToken')]) {
                         try {
-                            def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc"
+                            // <-- AGGIUNTO 'security_hotspots' NELLA STRINGA QUI SOTTO
+                            def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc,security_hotspots"
                             def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
                             
                             echo "=== DEBUG API SONARQUBE ==="
@@ -100,6 +102,7 @@ pipeline {
                         codeSmells: metricsMap['code_smells'],
                         coverage: metricsMap['coverage'],
                         duplications: metricsMap['duplicated_lines_density'],
+                        securityHotspots: metricsMap['security_hotspots'], // <-- AGGIUNTO QUI NEL PAYLOAD
                         ncloc: metricsMap['ncloc']
                     ]
                 ])

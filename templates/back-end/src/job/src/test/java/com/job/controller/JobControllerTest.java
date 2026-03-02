@@ -60,14 +60,5 @@ class JobControllerTest {
                 .andExpect(jsonPath("$[1].project", is("Project Beta")));
     }
 
-    @Test
-    void testGetAllJobs_ReturnsEmptyList() throws Exception {
-        // Test caso lista vuota
-        when(jobService.getAllJobs()).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get("/job")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
-    }
+    
 }

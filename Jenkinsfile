@@ -4,6 +4,11 @@ import groovy.json.JsonOutput
 pipeline {
     agent any
     
+    environment {
+        SONAR_PROJECT_KEY = "TestSonarQube"
+        MY_SONAR_TOKEN = credentials('SONAR_API_TOKEN') 
+    }
+    
     tools {
         maven 'maven_3.9'
     }
@@ -17,16 +22,13 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            environment {
-                MY_SONAR_TOKEN = credentials('SONAR_API_TOKEN') 
-            }
             steps {
                 script {
                     withSonarQubeEnv('SonarQubeServer') {
                         sh """
                             mvn -f templates/back-end/src/job/pom.xml \
                             clean verify sonar:sonar \
-                            -Dsonar.projectKey=TestSonarQube \
+                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
                             -Dsonar.login=${MY_SONAR_TOKEN}
                         """
                     }
@@ -51,24 +53,22 @@ pipeline {
                     code_smells: '0',
                     coverage: '0.0',
                     duplicated_lines_density: '0.0',
-                    security_hotspots: '0', // <-- AGGIUNTO QUI (Default)
+                    security_hotspots: '0', 
                     ncloc: '0' 
                 ]
 
                 if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'UNSTABLE') {
                     withCredentials([string(credentialsId: 'SONAR_API_TOKEN', variable: 'SonarQubeToken')]) {
                         try {
-                            // <-- AGGIUNTO 'security_hotspots' NELLA STRINGA QUI SOTTO
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,ncloc,security_hotspots"
-                            def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
+                            
+                            // URL pulito senza query al branch
+                            def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=${env.SONAR_PROJECT_KEY}&metricKeys=${metricKeys}"
                             
                             echo "=== DEBUG API SONARQUBE ==="
                             echo "Chiamata URL: ${sonarApiUrl}"
                             
                             def sonarResponse = sh(script: "curl -s -u \$SonarQubeToken: '${sonarApiUrl}'", returnStdout: true).trim()
-                            
-                            echo "Risposta da SonarQube: ${sonarResponse}"
-                            echo "==========================="
                             
                             def jsonSlurper = new JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)
@@ -92,15 +92,16 @@ pipeline {
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
                 def payload = JsonOutput.toJson([
-                    repoUrl: ,
+                    repoUrl: gitUrl,
                     qualityGate: buildStatus,
+                    sonarProjectKey: env.SONAR_PROJECT_KEY,  // <-- Il backend userà questa per i redirect
                     sonarStats: [
                         bugs: metricsMap['bugs'],
                         vulnerabilities: metricsMap['vulnerabilities'],
                         codeSmells: metricsMap['code_smells'],
                         coverage: metricsMap['coverage'],
                         duplications: metricsMap['duplicated_lines_density'],
-                        securityHotspots: metricsMap['security_hotspots'], // <-- AGGIUNTO QUI NEL PAYLOAD
+                        securityHotspots: metricsMap['security_hotspots'], 
                         ncloc: metricsMap['ncloc']
                     ]
                 ])
@@ -114,4 +115,4 @@ pipeline {
             }
         }
     }
-}
+}s

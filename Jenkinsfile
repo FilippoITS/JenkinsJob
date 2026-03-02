@@ -1,6 +1,6 @@
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
-
+A
 pipeline {
     agent any
     
@@ -92,7 +92,7 @@ pipeline {
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
                 def payload = JsonOutput.toJson([
-                    repoUrl: gitUrl,
+                    repoUrl: ,
                     qualityGate: buildStatus,
                     sonarStats: [
                         bugs: metricsMap['bugs'],

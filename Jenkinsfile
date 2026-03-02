@@ -46,7 +46,6 @@ pipeline {
                 def backendBaseUrl = "https://adm-ci.ci.dev.adamantic.cloud" 
                 
                 def metricsMap = [
-                    alert_status: 'UNKNOWN',
                     bugs: '0',
                     vulnerabilities: '0',
                     code_smells: '0',
@@ -60,7 +59,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'SONAR_API_TOKEN', variable: 'SonarQubeToken')]) {
                         try {
                             // <-- AGGIUNTO 'security_hotspots' NELLA STRINGA QUI SOTTO
-                            def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,alert_status,ncloc,security_hotspots"
+                            def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,ncloc,security_hotspots"
                             def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=TestSonarQube&metricKeys=${metricKeys}"
                             
                             echo "=== DEBUG API SONARQUBE ==="
@@ -96,7 +95,6 @@ pipeline {
                     repoUrl: gitUrl,
                     qualityGate: buildStatus,
                     sonarStats: [
-                        status: metricsMap['alert_status'],
                         bugs: metricsMap['bugs'],
                         vulnerabilities: metricsMap['vulnerabilities'],
                         codeSmells: metricsMap['code_smells'],

@@ -92,7 +92,7 @@ pipeline {
                 def payload = groovy.json.JsonOutput.toJson([
                     repoUrl: gitUrl,
                     qualityGate: buildStatus,
-                    sonarProjectKey: env.SONAR_PROJECT_KEY,  
+                    sonarJob: env.SONAR_PROJECT_KEY,  
                     sonarStats: [
                         bugs: metricsMap['bugs'],
                         vulnerabilities: metricsMap['vulnerabilities'],

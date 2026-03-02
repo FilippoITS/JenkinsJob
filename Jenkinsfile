@@ -1,6 +1,3 @@
-import groovy.json.JsonSlurper
-import groovy.json.JsonOutput
-
 pipeline {
     agent any
     
@@ -62,7 +59,6 @@ pipeline {
                         try {
                             def metricKeys = "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,ncloc,security_hotspots"
                             
-                            // URL pulito senza query al branch
                             def sonarApiUrl = "${sonarBaseUrl}/api/measures/component?component=${env.SONAR_PROJECT_KEY}&metricKeys=${metricKeys}"
                             
                             echo "=== DEBUG API SONARQUBE ==="
@@ -70,7 +66,8 @@ pipeline {
                             
                             def sonarResponse = sh(script: "curl -s -u \$SonarQubeToken: '${sonarApiUrl}'", returnStdout: true).trim()
                             
-                            def jsonSlurper = new JsonSlurper()
+                            // Usiamo la classe completa invece dell'import
+                            def jsonSlurper = new groovy.json.JsonSlurper()
                             def sonarData = jsonSlurper.parseText(sonarResponse)
                             
                             if (sonarData?.component?.measures) {
@@ -91,10 +88,11 @@ pipeline {
                 def gitUrl = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "UNKNOWN_REPO"
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
-                def payload = JsonOutput.toJson([
+                // Usiamo la classe completa invece dell'import
+                def payload = groovy.json.JsonOutput.toJson([
                     repoUrl: gitUrl,
                     qualityGate: buildStatus,
-                    sonarProjectKey: env.SONAR_PROJECT_KEY,  // <-- Il backend userà questa per i redirect
+                    sonarProjectKey: env.SONAR_PROJECT_KEY,  
                     sonarStats: [
                         bugs: metricsMap['bugs'],
                         vulnerabilities: metricsMap['vulnerabilities'],
@@ -115,4 +113,4 @@ pipeline {
             }
         }
     }
-}s
+}

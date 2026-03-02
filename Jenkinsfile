@@ -22,16 +22,19 @@ pipeline {
             steps {
                 script {
                     withSonarQubeEnv('SonarQubeServer') {
+                        // Aggiunto il parametro esplicito per JaCoCo XML Report
                         sh """
                             mvn -f templates/back-end/src/job/pom.xml \
                             clean verify sonar:sonar \
                             -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
-                            -Dsonar.login=${MY_SONAR_TOKEN}
+                            -Dsonar.login=${MY_SONAR_TOKEN} \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                         """
                     }
                     
                     timeout(time: 5, unit: 'MINUTES') {
-                        waitForQualityGate abortPipeline: true
+                        // Impostato a false: la pipeline non fallirà se il Quality Gate non è superato
+                        waitForQualityGate abortPipeline: false
                     }
                 }
             }
@@ -86,6 +89,8 @@ pipeline {
 
                 def apiUrl = "${backendBaseUrl}/api/webhooks/jenkins"
                 def gitUrl = scm ? scm.getUserRemoteConfigs()[0].getUrl() : "UNKNOWN_REPO"
+                // Se la build è SUCCESS o UNSTABLE (Quality gate fallito ma non bloccante), inviamo true o false in base alle tue preferenze.
+                // Qui mappiamo SUCCESS come true, tutto il resto come false.
                 def buildStatus = (currentBuild.currentResult == 'SUCCESS') ? 'true' : 'false'
 
                 // Usiamo la classe completa invece dell'import

@@ -29,7 +29,7 @@
     
     <properties>
         <sonar.exclusions>
-            **/src/main/java/com/job/dto/JobDTO.java
+            **/src/main/java/com/job/dto/JobDTO.java,
             **/src/main/java/com/job/entity/Job.java
         </sonar.exclusions>
         <java.version>17</java.version>

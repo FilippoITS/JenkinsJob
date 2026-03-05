@@ -2,6 +2,7 @@ package com.job.dto;
 
 import java.time.LocalDateTime;
 
+
 public class JobDTO {
 
     private Integer id;
@@ -11,7 +12,6 @@ public class JobDTO {
     private String status;
     private String data;
 
-    // Getters and Setters
 
     public Integer getId() {
         return id;

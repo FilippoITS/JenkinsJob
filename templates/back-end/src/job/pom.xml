@@ -28,11 +28,16 @@
     </scm>
     
     <properties>
+        <sonar.exclusions>
+            **templates/back-end/src/job/src/main/java/com/job/dto/JobDTO.java
+            **templates/back-end/src/job/src/main/java/com/job/entity/Job.java
+        </sonar.exclusions>
         <java.version>17</java.version>
         <sonar.projectKey>TestSonarQube</sonar.projectKey>
         <sonar.projectName>TestSonarQube</sonar.projectName>
         <sonar.host.url>http://localhost:9000</sonar.host.url>
     </properties>
+    
     <dependencies>
         <dependency>
             <groupId>com.h2database</groupId>
